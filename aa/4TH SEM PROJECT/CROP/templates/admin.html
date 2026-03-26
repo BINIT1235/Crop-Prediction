@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard | Crop Prediction System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #11100a;
+      --card:   #1a1610;
+      --border: #2c2214;
+      --sprout: #7fb83a;
+      --wheat:  #c9a84c;
+      --cream:  #f0e8d0;
+      --dim:    #6a5c3a;
+      --faint:  #3a3020;
+    }
+    html, body { min-height: 100%; }
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 110% 55% at 50% 0%, #2e3d1420 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 100% 100%, #1e2a0810 0%, transparent 55%);
+      color: var(--cream);
+      font-family: 'DM Mono', monospace;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    /* navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      padding: 1.5rem 2rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      box-shadow: 0 40px 80px #00000099;
+    }
+
+    .navbar h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--cream);
+    }
+
+    .navbar h1 em {
+      color: var(--sprout);
+      font-style: italic;
+    }
+
+    .logout-btn {
+      background: linear-gradient(135deg, #c9564a 0%, #d97050 55%, #b85544 100%);
+      color: #f0e8d0;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 12px #c9564a40;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px #c9564a60;
+    }
+
+    /* main container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* section */
+    .section {
+      margin-bottom: 3rem;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .section-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--cream);
+    }
+
+    .section-header::before {
+      content: "◆";
+      font-size: 0.9rem;
+      color: var(--sprout);
+    }
+
+    .stat-badge {
+      margin-left: auto;
+      background: #1c2c0a;
+      border: 1px solid #304a14;
+      color: var(--sprout);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* table styles */
+    .table-wrapper {
+      overflow-x: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 1.5rem;
+      box-shadow: 0 40px 80px #00000099, 0 0 0 1px #ffffff04 inset;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table thead {
+      background: linear-gradient(135deg, #1c2c0a 0%, #2a3a12 100%);
+    }
+
+    table th {
+      padding: 1rem;
+      text-align: left;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--sprout);
+      border-bottom: 2px solid var(--border);
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 0.9rem 1rem;
+      font-size: 0.75rem;
+      color: var(--cream);
+      border-bottom: 1px solid #3a2e1440;
+    }
+
+    table tbody tr {
+      transition: background-color 0.2s ease;
+    }
+
+    table tbody tr:hover {
+      background-color: #2a2218;
+    }
+
+    table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* alternating row colors */
+    table tbody tr:nth-child(odd) {
+      background-color: #0d0b0655;
+    }
+
+    table tbody tr:nth-child(even) {
+      background-color: #1a1610;
+    }
+
+    .result-badge {
+      display: inline-block;
+      padding: 0.3rem 0.7rem;
+      background: #1c2c0a;
+      border: 1px solid #304a14;
+      border-radius: 6px;
+      font-size: 0.62rem;
+      color: var(--sprout);
+      font-weight: 600;
+    }
+
+    .time-cell {
+      color: var(--dim);
+      font-size: 0.68rem;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 2rem;
+      color: var(--dim);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .table-wrapper {
+        padding: 1rem;
+      }
+
+      table th, table td {
+        padding: 0.6rem 0.4rem;
+        font-size: 0.62rem;
+      }
+
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .stat-badge {
+        margin-left: 0;
+        margin-top: 0.5rem;
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .deco {
+      position: fixed;
+      bottom: -6rem;
+      right: -5rem;
+      font-size: 26rem;
+      opacity: 0.025;
+      pointer-events: none;
+      user-select: none;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+
+<div class="deco" aria-hidden="true">🌿</div>
+
+<!-- Navbar -->
+<div class="navbar">
+  <h1>Crop <em>Prediction</em> Admin</h1>
+  <form action="/logout" method="post" style="margin: 0;">
+    <button type="submit" class="logout-btn">🚪 Logout</button>
+  </form>
+</div>
+
+<div class="container">
+  
+  <!-- Users Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Users</h2>
+      <div class="stat-badge">Total: {{ users|length }}</div>
+    </div>
+    
+    <div class="table-wrapper">
+      {% if users %}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Joined</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td>#{{ user.id }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email if user.email else '—' }}</td>
+              <td class="time-cell">{{ user.created_at if user.created_at else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-message">No users found</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Predictions Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Predictions</h2>
+      <div class="stat-badge">Total: {{ predictions|length }}</div>
+    </div>
+    
+    <div class="table-wrapper">
+      {% if predictions %}
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Nitrogen</th>
+              <th>Phosphorus</th>
+              <th>Potassium</th>
+              <th>Temp (°C)</th>
+              <th>Humidity (%)</th>
+              <th>pH</th>
+              <th>Rainfall (mm)</th>
+              <th>Predicted Crop</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in predictions %}
+            <tr>
+              <td><strong>{{ p.user.username }}</strong></td>
+              <td>{{ p.N }}</td>
+              <td>{{ p.P }}</td>
+              <td>{{ p.K }}</td>
+              <td>{{ p.temperature }}</td>
+              <td>{{ p.humidity }}</td>
+              <td>{{ p.ph }}</td>
+              <td>{{ p.rainfall }}</td>
+              <td><span class="result-badge">{{ p.result }}</span></td>
+              <td class="time-cell">{{ p.created_at }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-message">No predictions found</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

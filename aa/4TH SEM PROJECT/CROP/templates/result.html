@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prediction Results | Crop Prediction System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #11100a;
+      --card:   #1a1610;
+      --border: #2c2214;
+      --sprout: #7fb83a;
+      --wheat:  #c9a84c;
+      --cream:  #f0e8d0;
+      --dim:    #6a5c3a;
+      --faint:  #3a3020;
+    }
+    html, body { min-height: 100%; }
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 110% 55% at 50% 0%, #2e3d1420 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 100% 100%, #1e2a0810 0%, transparent 55%);
+      color: var(--cream);
+      font-family: 'DM Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1.5rem 3rem;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      position: absolute;
+      top: 1.5rem;
+      right: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .logout-btn {
+      background: linear-gradient(135deg, #c9564a 0%, #d97050 55%, #b85544 100%);
+      color: #f0e8d0;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 12px #c9564a40;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px #c9564a60;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.4rem;
+      margin-top: 1rem;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #1c2c0a;
+      border: 1px solid #304a14;
+      color: var(--cream);
+      font-size: 0.58rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      margin-bottom: 1.1rem;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--sprout);
+      border-radius: 50%;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.1rem, 5vw, 3.5rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--sprout);
+    }
+
+    .subtitle {
+      margin-top: 0.7rem;
+      color: var(--dim);
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 2.5rem;
+      box-shadow: 0 40px 80px #00000099, 0 0 0 1px #ffffff04 inset;
+      animation: fadeUp 0.85s ease both 0.1s;
+      margin-bottom: 2rem;
+    }
+
+    .slabel {
+      font-size: 0.56rem;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--wheat);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .slabel::before { 
+      content: "◆"; 
+      font-size: 0.42rem; 
+      color: var(--sprout); 
+    }
+
+    .slabel::after { 
+      content: ""; 
+      flex: 1; 
+      height: 1px; 
+      background: linear-gradient(to right, #3a2e1440, transparent); 
+    }
+
+    .top-prediction {
+      background: linear-gradient(135deg, #1c2c0a 0%, #2a3a12 100%);
+      border: 2px solid var(--sprout);
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px #7fb83a20;
+    }
+
+    .top-crop-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--sprout);
+      margin-bottom: 0.5rem;
+      text-transform: capitalize;
+    }
+
+    .confidence-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 1rem;
+    }
+
+    .confidence-score {
+      font-size: 1.5rem;
+      color: var(--wheat);
+      font-weight: 600;
+    }
+
+    .predictions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1.5rem;
+    }
+
+    .prediction-card {
+      background: #0d0b06;
+      border: 1px solid #261c0c;
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .prediction-card:hover {
+      border-color: var(--sprout);
+      background: #111006;
+      box-shadow: 0 5px 15px #7fb83a20;
+      transform: translateY(-5px);
+    }
+
+    .rank {
+      font-size: 0.55rem;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .crop-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 0.8rem;
+      text-transform: capitalize;
+    }
+
+    .confidence-bar {
+      background: #261c0c;
+      border-radius: 8px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 0.6rem;
+    }
+
+    .confidence-fill {
+      background: linear-gradient(90deg, #7fb83a 0%, #aee042 100%);
+      height: 100%;
+      transition: width 0.6s ease;
+    }
+
+    .confidence-text {
+      font-size: 0.7rem;
+      color: var(--sprout);
+      font-weight: 600;
+    }
+
+    .input-summary {
+      background: #0d0b0655;
+      border: 1px solid #261c0c;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-title {
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--wheat);
+      margin-bottom: 1rem;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    .summary-item {
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 0.55rem;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    .summary-value {
+      font-size: 1.1rem;
+      color: var(--sprout);
+      font-weight: 600;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(135deg, #90ca3e 0%, #aee042 55%, #7fb83a 100%);
+      color: #0d1a04;
+      border: none;
+      border-radius: 12px;
+      text-decoration: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .2s;
+      box-shadow: 0 6px 22px #7fb83a26;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px #7fb83a3c;
+    }
+
+    @keyframes fadeDown { 
+      from { opacity:0; transform:translateY(-14px); } 
+      to { opacity:1; transform:translateY(0); } 
+    }
+
+    @keyframes fadeUp { 
+      from { opacity:0; transform:translateY(18px); } 
+      to { opacity:1; transform:translateY(0); } 
+    }
+
+    @media (max-width: 768px) {
+      .card { padding: 1.5rem; }
+      .top-crop-name { font-size: 1.8rem; }
+      .predictions-grid { grid-template-columns: 1fr; }
+      .navbar {
+        position: static;
+        margin-bottom: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <form action="/logout" method="post" style="margin: 0;">
+    <button type="submit" class="logout-btn">🚪 Logout</button>
+  </form>
+</div>
+
+<header>
+  <div class="badge"><span class="badge-dot"></span> AI-Powered Agriculture</div>
+  <h1>Prediction <em>Results</em></h1>
+  <p class="subtitle">Top Crop Recommendations</p>
+</header>
+
+<div class="container">
+
+  <!-- Input Summary -->
+  <div class="card">
+    <div class="input-summary">
+      <div class="summary-title">Your Input Parameters</div>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">Nitrogen</div>
+          <div class="summary-value">{{ input_data.N }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Phosphorus</div>
+          <div class="summary-value">{{ input_data.P }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Potassium</div>
+          <div class="summary-value">{{ input_data.K }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Temperature</div>
+          <div class="summary-value">{{ input_data.temperature }}°C</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Humidity</div>
+          <div class="summary-value">{{ input_data.humidity }}%</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">pH Level</div>
+          <div class="summary-value">{{ input_data.ph }}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Rainfall</div>
+          <div class="summary-value">{{ input_data.rainfall }}mm</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Prediction -->
+  <div class="card">
+    <div class="slabel">Best Match</div>
+    <div class="top-prediction">
+      <div class="top-crop-name">🌾 {{ crop }}</div>
+      <div class="confidence-label">Confidence Score</div>
+      <div class="confidence-score">
+        {{ "%.2f"|format(top_predictions[0][1] * 100) }}%
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+  
+  <!-- All Predictions -->
+
+<div class="card">
+  <div class="slabel">Top 5 Recommendations</div>
+  <div class="predictions-grid">
+    {% for crop_name, confidence in top_predictions %}
+    <div class="prediction-card">
+      <div class="rank">Rank #{{ loop.index }}</div>
+      <div class="crop-name">{{ crop_name }}</div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" style="width: {{ (confidence * 100)|int }}%;"></div>
+      </div>
+      <div class="confidence-text">{{ "%.2f"|format(confidence * 100) }}%</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+  <!-- Back Button -->
+  <div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+    <a href="/" class="back-btn">← Make Another Prediction</a>
+  </div>
+
+</div>
+</body>
+</html>
